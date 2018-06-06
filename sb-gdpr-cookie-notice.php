@@ -270,9 +270,6 @@ _gid',
 
     public function plugin_settings_page_content() {
         self::update_settings_option();
-        echo '<pre>';
-        print_r(get_option('servebolt_gdpr_settings'));
-        echo '</pre>';
         ?>
         <div class="wrap">
             <h2>Servebolt GDPR Cookie & Tracking Notice</h2>
