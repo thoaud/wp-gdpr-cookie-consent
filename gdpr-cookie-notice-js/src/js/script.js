@@ -51,12 +51,7 @@ function gdprCookieNotice(config) {
       }
     }
 
-    // Show the notice if not all categories are enabled
-    if(notAllEnabled) {
-      showNotice();
-    } else {
-      hideNotice();
-    }
+    hideNotice();
   }
 
   // Hide cookie notice bar
@@ -219,6 +214,7 @@ function gdprCookieNotice(config) {
     }
 
     saveButton.addEventListener('click', function(e) {
+      console.log("savebutton click");
       e.preventDefault();
       saveButton.classList.add('saved');
       setTimeout(function(){
@@ -268,6 +264,7 @@ function gdprCookieNotice(config) {
 
   // Accept cookies on scroll
   function acceptOnScroll() {
+      console.log("accept scroll");
     window.addEventListener('scroll', function _listener() {
       if(amountScrolled()) {
         acceptCookies();

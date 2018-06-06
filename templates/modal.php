@@ -13,9 +13,9 @@ if(!empty($settings['sb_analytics_desc'])){
     $category['analytics']['desc'] = $settings['sb_analytics_desc'];
 }
 if(!empty($settings['sb_marketing_desc'])){
-    $category['performance']['prefix'] = 'marketing';
-    $category['performance']['title'] = 'Marketing Cookies';
-    $category['performance']['desc'] = $settings['sb_marketing_desc'];
+    $category['marketing']['prefix'] = 'marketing';
+    $category['marketing']['title'] = 'Marketing Cookies';
+    $category['marketing']['desc'] = $settings['sb_marketing_desc'];
 }
 
 ?>

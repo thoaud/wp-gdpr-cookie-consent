@@ -11,6 +11,11 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: servebolt-gdpr
 */
 
+
+// TODO: update styling
+// TODO: make comments
+// TODO: make readme
+
 define( 'SERVEBOLT_COOKIE_NOTICE_PATH_URL', plugin_dir_url( __FILE__ ) );
 define( 'SERVEBOLT_COOKIE_NOTICE_PATH', plugin_dir_path( __FILE__ ) );
 
@@ -20,7 +25,9 @@ class sb_gdpr_setup {
         add_action( 'admin_menu', array( $this, 'create_plugin_settings_page' ) );
         add_action( 'admin_init', array( $this, 'setup_sections' ) );
         add_action( 'admin_init', array( $this, 'setup_fields' ) );
-        add_action( 'wp_footer',  array( $this, 'init_cookie_warning' ));
+        add_action( 'wp_footer',  array( $this, 'init_cookie_warning' ), 999);
+        add_action( 'wp_head',    array( $this, 'head_scripts' ));
+        add_action( 'wp_footer',  array( $this, 'body_scripts' ));
         add_option('servebolt_gdpr_settings');
         wp_enqueue_script( 'sb_gdpr_notice_script', SERVEBOLT_COOKIE_NOTICE_PATH_URL.'/gdpr-cookie-notice-js/dist/script.js', false, '0.1', false );
         wp_enqueue_style( 'sb_gdpr_notice_style', SERVEBOLT_COOKIE_NOTICE_PATH_URL.'/gdpr-cookie-notice-js/dist/style.css', false, '0.1' );
@@ -262,14 +269,10 @@ _gid',
 
 
     public function plugin_settings_page_content() {
-
-        $allfields = self::setup_fields(true);
-        $options = array();
-        foreach ($allfields as $field){
-            $value = get_option($field['uid']);
-            if($field['uid'] === 'sb_performance_cookies' || $field['uid'] === 'sb_analytics_cookies' || $field['uid'] === 'sb_marketing_cookies' ): $options[$field['uid']] = explode(',', str_replace(' ', '', $value)); else: $options[$field['uid']] = $value; endif;
-        }
-        update_option('servebolt_gdpr_settings', $options );
+        self::update_settings_option();
+        echo '<pre>';
+        print_r(get_option('servebolt_gdpr_settings'));
+        echo '</pre>';
         ?>
         <div class="wrap">
             <h2>Servebolt GDPR Cookie & Tracking Notice</h2>
@@ -283,12 +286,93 @@ _gid',
         </div> <?php
     }
 
+
+    static function update_settings_option(){
+        $allfields = self::setup_fields(true);
+        $options = array();
+        foreach ($allfields as $field){
+            $value = get_option($field['uid']);
+            $fields_to_explode = array(
+                'sb_performance_cookies',
+                'sb_analytics_cookies',
+                'sb_marketing_cookies'
+            );
+            $fields_to_escape = array(
+                'sb_performance_scripts_head',
+                'sb_performance_scripts_body',
+                'sb_analytics_scripts_head',
+                'sb_analytics_scripts_body',
+                'sb_marketing_scripts_head',
+                'sb_marketing_scripts_body'
+            );
+            if(in_array($field['uid'], $fields_to_explode)):
+                $options[$field['uid']] = explode(',', str_replace(' ', '', $value));
+            elseif(in_array($field['uid'], $fields_to_escape)):
+                $options[$field['uid']] = esc_html(strip_tags($value));
+            else:
+                $options[$field['uid']] = $value;
+            endif;
+
+        }
+        update_option('servebolt_gdpr_settings', $options );
+    }
+
     public function init_cookie_warning() {
         ob_start();
+        include 'templates/notice.php';
         include 'templates/modal.php';
-        if (!isset($_COOKIE["gdprcookienotice"])) include 'templates/notice.php';
         include 'templates/config-script.php';
         echo ob_get_clean();
+    }
+
+    public function head_scripts() {
+        $script = get_option('servebolt_gdpr_settings');
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.performance) { 
+                    '.htmlspecialchars_decode($script['sb_performance_scripts_head']).'
+                }
+            });
+            </script>';
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.analytics) { 
+                    '.htmlspecialchars_decode($script['sb_analytics_scripts_head']).'
+                }
+            });
+            </script>';
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.marketing) { 
+                    '.htmlspecialchars_decode($script['sb_marketing_scripts_head']).'
+                }
+            });
+            </script>';
+    }
+
+    public function body_scripts(){
+        $script = get_option('servebolt_gdpr_settings');
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.performance) { 
+                    '.htmlspecialchars_decode($script['sb_performance_scripts_body']).'
+                }
+            });
+            </script>';
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.analytics) { 
+                    '.htmlspecialchars_decode($script['sb_analytics_scripts_body']).'
+                }
+            });
+            </script>';
+        echo '<script type="text/javascript" async>
+                document.addEventListener("gdprCookiesEnabled", function (e) {
+                if(e.detail.marketing) { 
+                    '.htmlspecialchars_decode($script['sb_marketing_scripts_body']).'
+                }
+            });
+            </script>';
     }
 }
 new sb_gdpr_setup();
